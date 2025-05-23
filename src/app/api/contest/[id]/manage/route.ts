@@ -107,8 +107,7 @@ export async function GET(
         id: contest.id,
         title: contest.title,
         status: contest.status,
-        // @ts-expect-error - contestType exists but TypeScript inference is not working
-        contestType: contest.contestType,
+        contestType: (contest as unknown as { contestType: string }).contestType,
         joinCode: contest.joinCode,
         classroom: {
           name: contest.classroom.name,

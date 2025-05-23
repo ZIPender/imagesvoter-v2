@@ -65,13 +65,11 @@ export async function POST(
       );
     }
 
-    // Verify contest exists and is teacher upload type
+    // Verify contest exists and teacher owns it
     const contest = await db.contest.findFirst({
       where: {
         id,
         teacherId: userId,
-        // @ts-expect-error - contestType exists but TypeScript inference is not working
-        contestType: "TEACHER_UPLOAD",
       },
     });
 
