@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classrooms Classroom[]
+  contests   Contest[]
+
+  @@map("users")
+}
+
+model Classroom {
+  id        String   @id @default(cuid())
+  name      String
+  teacherId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher  User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  contests Contest[]
+
+  @@map("classrooms")
+}
+
+model Contest {
+  id          String        @id @default(cuid())
+  title       String
+  joinCode    String        @unique
+  status      ContestStatus @default(SUBMISSION)
+  contestType ContestType   @default(STUDENT_UPLOAD)
+  classroomId String
+  teacherId   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  classroom    Classroom     @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  teacher      User          @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  participants Participant[]
+  submissions  Submission[]
+  votes        Vote[]
+
+  @@map("contests")
+}
+
+model Participant {
+  id        String   @id @default(cuid())
+  nickname  String
+  contestId String
+  sessionId String   @unique
+  createdAt DateTime @default(now())
+
+  contest     Contest      @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+  votes       Vote[]
+
+  @@unique([contestId, nickname])
+  @@map("participants")
+}
+
+model Submission {
+  id            String   @id @default(cuid())
+  aiImageUrl    String
+  realImageUrl  String
+  participantId String   @unique
+  contestId     String
+  createdAt     DateTime @default(now())
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  contest     Contest     @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+
+  @@map("submissions")
+}
+
+model Vote {
+  id            String   @id @default(cuid())
+  participantId String   @unique
+  submissionId  String
+  contestId     String
+  createdAt     DateTime @default(now())
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  submission  Submission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  contest     Contest     @relation(fields: [contestId], references: [id], onDelete: Cascade)
+
+  @@map("votes")
+}
+
+enum ContestStatus {
+  SUBMISSION
+  VOTING
+  RESULTS
+  ENDED
+}
+
+enum ContestType {
+  STUDENT_UPLOAD
+  TEACHER_UPLOAD
+}
