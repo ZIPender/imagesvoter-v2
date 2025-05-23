@@ -9,7 +9,7 @@
     "lint": "next lint",
     "db:seed": "tsx prisma/seed.ts",
     "db:deploy": "prisma db push",
-    "db:deploy-production": "node scripts/deploy-schema.js",
+    "db:deploy-supabase": "node scripts/deploy-supabase.js",
     "postinstall": "prisma generate --no-engine"
   },
   "prisma": {
